@@ -16,13 +16,14 @@
 -->
 <Module>
 <ModulePrefs title="UMLWavy" description="Create Class Diagrams colaboratively with wave technology" height="320" author="Joaquín Magneres">
-    <Require feature="wave" /> 
+    <Require feature="wave" />
   </ModulePrefs>
 <Content type="html">
 <![CDATA[ 
   <script src="https://umlwavy.appspot.com/jquery.js"></script>
   <script src="https://umlwavy.appspot.com/jquery-ui.js"></script>
   <script type="text/javascript">
+
   	function Vector(valx, valy) {
   		this.x = valx;
   		this.y = valy;
@@ -110,6 +111,17 @@
 			wave.log('Movido '+$(this).attr('id'));
 		});
 		
+		var htmlDelete = '<div id="delete'+this.id+'" style="width:10px; height:10px; padding-bottom:6px; padding-left:1px; background-color:white; border: 1px solid;top:0px; float: right;">x</div>';
+		var del = $(htmlDelete);
+		del.mouseup(function() {
+				var idRect = parseInt($(this).attr('id').substr(6));
+				var delta = {};
+				delta['rectangle'+idRect] = "eliminado";
+				delta['heredaDe'+idRect] = "eliminado";
+				delta['className'+idRect] = "\\eliminado";
+				wave.getState().submitDelta(delta); 
+				break;
+		});
 		
 		var htmlHeredarDe = '<div id="heredarA'+this.id+'" style="width:10px; height:10px; background-color:white; margin-left:20px; border: 1px solid;top:-10px; position:relative;"></div>';
 		var heredarDe = $(htmlHeredarDe);
@@ -220,6 +232,7 @@
         		}
         	}
 		});
+		this.div.append(del);
 		this.div.append(heredarDe);
 		this.div.append(lbl);
 		this.div.append(text);
@@ -267,30 +280,42 @@
 		for (var i = 0; i < idRectangle; i++) {
 			var pos = state.get('rectangle'+i);
 			if (pos) {
-	   	        var pos = pos.split('|');
-	   	        x = parseInt(pos[0]);
-	   	        y = parseInt(pos[1]);
-				$('#rectangle'+i).css({left: x + 'px', top: y + 'px', position: 'absolute'});
+				if (pos == "eliminado") {
+					$('#rectangle'+i).hide();
+				}
+				else {
+	   	        	var pos = pos.split('|');
+	   	        	x = parseInt(pos[0]);
+	   	        	y = parseInt(pos[1]);
+					$('#rectangle'+i).css({left: x + 'px', top: y + 'px', position: 'absolute'});
+				}
 	   	    }
 	   	    var nombreClase = state.get('className'+i);
    	    	if (nombreClase) {
-   	    		$('#lblClass'+i).html(nombreClase);
-   	    		$('#heredarA'+i).css('margin-left', arrayClases[i].getDiv().innerWidth()/2 - $('#heredarA'+i).outerWidth(false)-2+ 'px');
-   	    		$('#especificaA'+i).css('margin-left', arrayClases[i].getDiv().innerWidth()/2 - $('#especificaA'+i).outerWidth(false) -2 + 'px');
+   	    		if (nombreClase == "\\eliminado") {
+   	    			$('#rectangle'+i).hide();	
+   	    		}
+   	    		else {
+	   	    		$('#lblClass'+i).html(nombreClase);
+	   	    		$('#heredarA'+i).css('margin-left', arrayClases[i].getDiv().innerWidth()/2 - $('#heredarA'+i).outerWidth(false)-2+ 'px');
+	   	    		$('#especificaA'+i).css('margin-left', arrayClases[i].getDiv().innerWidth()/2 - $('#especificaA'+i).outerWidth(false) -2 + 'px');
+	   	    	}
    	    	}
    	    }
    	    for (var i = 0; i < idRectangle; i++) {
    	    	var heredaDe = state.get('heredaDe'+i);
    	    	if (heredaDe) {
-   	    		var idsPadre = heredaDe.split(':');
-   	    		arrayClases[i].clearHeredaDe();
-   	    		for (var j = 0; j < idsPadre.length; j++) {
-   	    			var idPadre = parseInt(idsPadre[j]);
-   	    			if (idPadre) {
-						arrayClases[i].heredarDe(arrayClases[idPadre]);
-   	    			}
+   	    		if (heredaDe != "eliminado") {
+	   	    		var idsPadre = heredaDe.split(':');
+	   	    		arrayClases[i].clearHeredaDe();
+	   	    		for (var j = 0; j < idsPadre.length; j++) {
+	   	    			var idPadre = parseInt(idsPadre[j]);
+	   	    			if (idPadre) {
+	   	    				if (arrayClases[idPadre].getDiv().is(":visible"))
+								arrayClases[i].heredarDe(arrayClases[idPadre]);
+	   	    			}
+	   	    		}
    	    		}
-   	    		
    	    	}
    	    }
     }
@@ -337,15 +362,20 @@
   				<img src="https://umlwavy.appspot.com/buttonAdd.png" alt="agregar clase"/>
   			</div>
   		</td>
+  		<td>
+  			<p style="font-size:10px; text-align:right;">
+  				<a href="http://code.google.com/p/umlwavy/" target="_blank">Project Site</a>
+  			</p>
+  		</td>
   	</tr>
   	<tr>
-  	  	<td>
+  	  	<td colspan="2">
   		  	<div id="container" style="width:100%; height:100%; border: 0px; position:relative">
   			</div>
   		</td>
   	</tr>
   	<tr style="height:30px;">
-  		<td>
+  		<td colspan="2">
   			<p id="helpTxt" style="font-style:italic"></p>
   		</td>
   	</tr>
